@@ -65,17 +65,20 @@ const PRIORITY_COLOR: Record<string, string> = {
 export function OverviewPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [teamMembers, setTeamMembers] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       api.get<{ data: Project[] } | Project[]>('/projects'),
       api.get<{ data: Task[] } | Task[]>('/tasks/my'),
-    ]).then(([p, t]) => {
+      api.get<{ _count: { users: number } }>('/organizations/me'),
+    ]).then(([p, t, org]) => {
       const pList = Array.isArray(p) ? p : (p as { data: Project[] }).data ?? [];
       const tList = Array.isArray(t) ? t : (t as { data: Task[] }).data ?? [];
       setProjects(pList.slice(0, 20));
       setTasks(tList.slice(0, 20));
+      setTeamMembers(org?._count?.users ?? 0);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -84,7 +87,7 @@ export function OverviewPage() {
     activeProjects: projects.filter(p => p.status === 'ACTIVE').length,
     totalTasks: tasks.length,
     overdueTasks: tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE').length,
-    teamMembers: 0,
+    teamMembers,
     completionRate: tasks.length
       ? Math.round((tasks.filter(t => t.status === 'DONE').length / tasks.length) * 100)
       : 0,
@@ -110,7 +113,7 @@ export function OverviewPage() {
         <StatCard icon={FolderOpen} label="Total Projects" value={stats.totalProjects} sub={`${stats.activeProjects} active`} />
         <StatCard icon={CheckSquare} label="My Tasks" value={stats.totalTasks} sub={`${stats.completionRate}% done`} color="#22c55e" />
         <StatCard icon={AlertTriangle} label="Overdue" value={stats.overdueTasks} color="#ef4444" />
-        <StatCard icon={TrendingUp} label="Completion" value={`${stats.completionRate}%`} color="#818cf8" />
+        <StatCard icon={Users} label="Team Members" value={stats.teamMembers} color="#818cf8" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

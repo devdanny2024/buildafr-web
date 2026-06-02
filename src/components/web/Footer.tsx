@@ -19,6 +19,12 @@ const LINK_COLUMNS = [
 
 const SOCIAL = ["LinkedIn", "Twitter/X", "YouTube", "Instagram"];
 
+// Links that route to a real page; everything else stays a placeholder anchor.
+const LINK_HREFS: Record<string, string> = {
+  "Privacy Policy": "/privacy",
+  "Terms of Service": "/terms",
+};
+
 export function Footer() {
   return (
     <footer style={{ background: "#0A0A0A", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 40px) clamp(32px, 4vw, 40px)" }}>
@@ -36,7 +42,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div style={{ marginBottom: 10 }}>
-              <img src="/logo.png" alt="Buildafr" style={{ height: 32, objectFit: "contain" }} />
+              <img src="/logo-primary.png" alt="Buildafr" style={{ height: 48, objectFit: "contain" }} />
             </div>
             <div style={{ color: "#636366", fontSize: 15, fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>
               Build with Visibility. Deliver with Proof.
@@ -98,7 +104,7 @@ export function Footer() {
                 {col.links.map((link) => (
                   <a
                     key={link}
-                    href="#"
+                    href={LINK_HREFS[link] ?? "#"}
                     style={{
                       color: "#636366",
                       fontSize: 14,

@@ -11,12 +11,12 @@ const PAIN_POINTS = [
 ];
 
 const CHAOS_NODES = [
-  { label: "WhatsApp", icon: "💬", x: 20, y: 15, color: "#22C55E" },
-  { label: "Excel", icon: "📊", x: 70, y: 10, color: "#3B82F6" },
-  { label: "Phone", icon: "📞", x: 55, y: 55, color: "#8E8E93" },
-  { label: "Paper", icon: "📄", x: 15, y: 65, color: "#F59E0B" },
-  { label: "Email", icon: "📧", x: 78, y: 70, color: "#EF4444" },
-  { label: "SMS", icon: "✉️", x: 40, y: 82, color: "#8E8E93" },
+  { label: "WhatsApp", icon: "", x: 20, y: 15, color: "#22C55E" },
+  { label: "Excel", icon: "", x: 70, y: 10, color: "#3B82F6" },
+  { label: "Phone", icon: "", x: 55, y: 55, color: "#8E8E93" },
+  { label: "Paper", icon: "", x: 15, y: 65, color: "#F59E0B" },
+  { label: "Email", icon: "", x: 78, y: 70, color: "#EF4444" },
+  { label: "SMS", icon: "", x: 40, y: 82, color: "#8E8E93" },
 ];
 
 const CHAOS_LINES = [
@@ -180,7 +180,7 @@ export function ProblemSection() {
               }}
             >
               <div style={{ color: "#EF4444", fontSize: 12, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
-                ⚠ No single source of truth
+                No single source of truth
               </div>
             </div>
           </div>

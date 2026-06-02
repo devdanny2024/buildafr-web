@@ -249,7 +249,7 @@ function NewCampaignForm({ onCreated, templates, settings }: { onCreated: () => 
             {(["COLD_OUTREACH", "MARKETING"] as const).map(t => (
               <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
                 style={{ flex: 1, height: 52, border: `2px solid ${form.type === t ? "#F59E0B" : "#2C2C2E"}`, borderRadius: 10, background: form.type === t ? "rgba(245,158,11,0.1)" : "#1C1C1E", color: form.type === t ? "#F59E0B" : "#8E8E93", fontSize: 13, fontWeight: 700, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                {t === "COLD_OUTREACH" ? "🎯 Cold Reach Out" : "📣 Marketing Campaign"}
+                {t === "COLD_OUTREACH" ? "Cold Reach Out" : "Marketing Campaign"}
               </button>
             ))}
           </div>
@@ -317,6 +317,7 @@ function NewCampaignForm({ onCreated, templates, settings }: { onCreated: () => 
 
 function CampaignsList({ campaigns, loading, onRefresh }: { campaigns: Campaign[]; loading: boolean; onRefresh: () => void }) {
   const [acting, setActing] = useState<string | null>(null);
+  const [testMsg, setTestMsg] = useState<{ id: string; ok: boolean; text: string } | null>(null);
 
   const action = async (id: string, endpoint: string, method = "POST") => {
     setActing(id);
@@ -325,6 +326,21 @@ function CampaignsList({ campaigns, loading, onRefresh }: { campaigns: Campaign[
       onRefresh();
     } finally {
       setActing(null);
+    }
+  };
+
+  const sendTest = async (id: string) => {
+    setActing(id);
+    setTestMsg(null);
+    try {
+      const res = await fetch(`${API}/campaigns/${id}/test`, { method: "POST", headers: { "X-Admin-Key": ADMIN_KEY } });
+      const d = await res.json();
+      setTestMsg({ id, ok: res.ok, text: res.ok ? "Test sent to Soliu Olukayode ✓" : (d.message || "Failed") });
+    } catch {
+      setTestMsg({ id, ok: false, text: "Network error" });
+    } finally {
+      setActing(null);
+      setTimeout(() => setTestMsg(null), 5000);
     }
   };
 
@@ -342,7 +358,7 @@ function CampaignsList({ campaigns, loading, onRefresh }: { campaigns: Campaign[
   if (loading) return <div style={{ textAlign: "center", padding: 60, color: "#636366" }}>Loading campaigns…</div>;
   if (campaigns.length === 0) return (
     <div style={{ textAlign: "center", padding: 60, color: "#636366" }}>
-      <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+      <div style={{ fontSize: 32, marginBottom: 12 }}></div>
       <div style={{ fontSize: 16, fontWeight: 600, color: "#8E8E93", marginBottom: 4 }}>No campaigns yet</div>
       <div style={{ fontSize: 14 }}>Create your first campaign using the "New Campaign" tab.</div>
     </div>
@@ -364,7 +380,10 @@ function CampaignsList({ campaigns, loading, onRefresh }: { campaigns: Campaign[
                 {c.sentCount} sent · {c.failedCount} failed · {c.totalRecipients - c.sentCount - c.failedCount} pending
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
+              <button onClick={() => sendTest(c.id)} disabled={acting === c.id} style={{ ...s.btn(), border: "1px solid #3B82F6", color: "#60A5FA" }}>
+                {acting === c.id ? "Sending…" : "Send Test"}
+              </button>
               {c.status === "DRAFT" && <button onClick={() => action(c.id, "send")} disabled={acting === c.id} style={s.btn("primary")}>▶ Send</button>}
               {c.status === "SENDING" && <button onClick={() => action(c.id, "pause")} disabled={acting === c.id} style={s.btn()}>⏸ Pause</button>}
               {c.status === "PAUSED" && <button onClick={() => action(c.id, "resume")} disabled={acting === c.id} style={s.btn("primary")}>▶ Resume</button>}
@@ -372,6 +391,11 @@ function CampaignsList({ campaigns, loading, onRefresh }: { campaigns: Campaign[
             </div>
           </div>
           <ProgressBar sent={c.sentCount} total={c.totalRecipients} />
+          {testMsg?.id === c.id && (
+            <div style={{ fontSize: 13, padding: "8px 12px", borderRadius: 6, background: testMsg.ok ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: testMsg.ok ? "#22c55e" : "#EF4444", border: `1px solid ${testMsg.ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}` }}>
+              {testMsg.text}
+            </div>
+          )}
         </div>
       ))}
     </div>

@@ -2,34 +2,53 @@ import { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 
-interface BudgetEntry {
+interface FinancialEntry {
   id: string;
   projectId: string;
-  projectName?: string;
-  category: string;
-  description?: string;
-  plannedAmount: number;
-  actualAmount?: number;
-  currency?: string;
-  type: 'INCOME' | 'EXPENSE';
-  date?: string;
+  type: 'BUDGET_ALLOCATION' | 'EXPENDITURE' | 'PAYMENT' | 'INVOICE' | 'ADJUSTMENT' | 'REFUND';
+  amount: number;
+  currency: string;
+  description: string;
+  category?: string;
+  date: string;
 }
 
+interface Project {
+  id: string;
+  name: string;
+}
+
+const INCOME_TYPES = new Set(['BUDGET_ALLOCATION', 'INVOICE', 'REFUND']);
+const EXPENSE_TYPES = new Set(['EXPENDITURE', 'PAYMENT', 'ADJUSTMENT']);
+
 export function FinancialsPage() {
-  const [entries, setEntries] = useState<BudgetEntry[]>([]);
+  const [entries, setEntries] = useState<(FinancialEntry & { projectName?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Try to fetch from a generic financials/budget endpoint
-    api.get<BudgetEntry[] | { data: BudgetEntry[] }>('/budget')
-      .then(r => setEntries(Array.isArray(r) ? r : (r as { data: BudgetEntry[] }).data ?? []))
+    api.get<Project[] | { data: Project[] }>('/projects')
+      .then(async r => {
+        const projects = Array.isArray(r) ? r : (r as { data: Project[] }).data ?? [];
+        const results = await Promise.allSettled(
+          projects.slice(0, 10).map(p =>
+            api.get<FinancialEntry[]>(`/financial/project/${p.id}`)
+              .then(fe => {
+                const list = Array.isArray(fe) ? fe : [];
+                return list.map(e => ({ ...e, projectName: p.name }));
+              })
+          )
+        );
+        const all = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+        all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setEntries(all);
+      })
       .catch(() => setError('No financial data available yet'))
       .finally(() => setLoading(false));
   }, []);
 
-  const income = entries.filter(e => e.type === 'INCOME').reduce((s, e) => s + (e.actualAmount ?? e.plannedAmount), 0);
-  const expenses = entries.filter(e => e.type === 'EXPENSE').reduce((s, e) => s + (e.actualAmount ?? e.plannedAmount), 0);
+  const income = entries.filter(e => INCOME_TYPES.has(e.type)).reduce((s, e) => s + e.amount, 0);
+  const expenses = entries.filter(e => EXPENSE_TYPES.has(e.type)).reduce((s, e) => s + e.amount, 0);
   const balance = income - expenses;
 
   function fmt(n: number) {
@@ -85,25 +104,32 @@ export function FinancialsPage() {
             <h2 className="font-semibold text-white text-sm">All Transactions</h2>
           </div>
           <div className="divide-y divide-[#1E1E1E]">
-            {entries.map(e => (
-              <div key={e.id} className="flex items-center gap-4 px-5 py-3.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  e.type === 'INCOME' ? 'bg-[#22c55e]/10' : 'bg-[#ef4444]/10'
-                }`}>
-                  {e.type === 'INCOME'
-                    ? <TrendingUp size={14} className="text-[#22c55e]" />
-                    : <TrendingDown size={14} className="text-[#ef4444]" />
-                  }
+            {entries.map(e => {
+              const isIncome = INCOME_TYPES.has(e.type);
+              return (
+                <div key={e.id} className="flex items-center gap-4 px-5 py-3.5">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    isIncome ? 'bg-[#22c55e]/10' : 'bg-[#ef4444]/10'
+                  }`}>
+                    {isIncome
+                      ? <TrendingUp size={14} className="text-[#22c55e]" />
+                      : <TrendingDown size={14} className="text-[#ef4444]" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{e.description}</p>
+                    <p className="text-xs text-gray-500">
+                      {e.type.replace('_', ' ')}
+                      {e.projectName ? ` · ${e.projectName}` : ''}
+                      {e.date ? ` · ${new Date(e.date).toLocaleDateString()}` : ''}
+                    </p>
+                  </div>
+                  <p className={`text-sm font-semibold ${isIncome ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                    {isIncome ? '+' : '-'}{fmt(e.amount)}
+                  </p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">{e.description || e.category}</p>
-                  <p className="text-xs text-gray-500">{e.category}{e.date ? ` · ${new Date(e.date).toLocaleDateString()}` : ''}</p>
-                </div>
-                <p className={`text-sm font-semibold ${e.type === 'INCOME' ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                  {e.type === 'INCOME' ? '+' : '-'}{fmt(e.actualAmount ?? e.plannedAmount)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

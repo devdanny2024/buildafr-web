@@ -2,17 +2,22 @@ import { useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import {
   LayoutDashboard, FolderOpen, CheckSquare, DollarSign,
-  Users, Bell, LogOut, Menu, X, ChevronRight
+  Users, Bell, LogOut, Menu, X, ChevronRight,
+  Clock, FileText, BarChart2, Camera,
 } from 'lucide-react';
 import { getMe, logout, hasToken } from '../../lib/auth';
 import type { AuthUser } from '../../lib/auth';
 
 const NAV = [
-  { label: 'Overview',  icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Projects',  icon: FolderOpen,       path: '/dashboard/projects' },
-  { label: 'Tasks',     icon: CheckSquare,      path: '/dashboard/tasks' },
-  { label: 'Financials',icon: DollarSign,       path: '/dashboard/financials' },
-  { label: 'Team',      icon: Users,            path: '/dashboard/team' },
+  { label: 'Overview',   icon: LayoutDashboard, path: '/dashboard' },
+  { label: 'Projects',   icon: FolderOpen,       path: '/dashboard/projects' },
+  { label: 'Tasks',      icon: CheckSquare,      path: '/dashboard/tasks' },
+  { label: 'Financials', icon: DollarSign,       path: '/dashboard/financials' },
+  { label: 'Team',       icon: Users,            path: '/dashboard/team' },
+  { label: 'Attendance', icon: Clock,            path: '/dashboard/attendance' },
+  { label: 'Reports',    icon: FileText,         path: '/dashboard/reports' },
+  { label: 'Analytics',  icon: BarChart2,        path: '/dashboard/analytics' },
+  { label: 'Media',      icon: Camera,           path: '/dashboard/media' },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -51,10 +56,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       `}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-[#1E1E1E]">
-          <div className="w-8 h-8 bg-[#F59E0B] rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-black font-bold text-sm">B</span>
-          </div>
-          <span className="font-bold text-lg">Buildafr</span>
+          <img src="/logo-primary.png" alt="Buildafr" style={{ height: 44, objectFit: "contain" }} />
           <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X size={18} className="text-gray-400" />
           </button>

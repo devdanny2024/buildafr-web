@@ -72,7 +72,7 @@ function DashboardTab() {
             ))}
           </div>
           <div style={{ background: "rgba(239,68,68,0.08)", borderRadius: 10, padding: 14, border: "1px solid rgba(239,68,68,0.2)" }}>
-            <div style={{ color: "#EF4444", fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>⚠ 3 Alerts Pending</div>
+            <div style={{ color: "#EF4444", fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>3 Alerts Pending</div>
             <div style={{ color: "#8E8E93", fontSize: 11, fontFamily: "'Inter', sans-serif" }}>AI detected delay risks on active sites</div>
           </div>
         </div>

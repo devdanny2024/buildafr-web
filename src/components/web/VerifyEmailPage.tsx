@@ -107,7 +107,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "32px",
   },
   logo: {
-    height: "36px",
+    height: "56px",
     objectFit: "contain",
   },
   spinner: {
